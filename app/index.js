@@ -188,6 +188,51 @@ app.post('/login',
     res.redirect('/posts');
   });
 
+app.get('/follow/:id', isAuthenticated, (req, res) => {
+  if(!req.params.id) return sendStatus(400);
+  const currentUserId = req.user.id;
+  const followUserId = req.params.id;
+  User.forge({ id: followUserId })
+    .fetch().then(usr => {
+      if (!usr) return res.sendStatus(400);
+      return User.forge({ id: currentUserId }).following().attach([usr]);
+    }).then(usr => res.send(_.pluck(usr.models, 'id')))
+      .catch(err => res.sendStatus(500));
+});
+
+app.get('/unfollow/:id', isAuthenticated, (req, res) => {
+  if(!req.params.id) return sendStatus(400);
+  let currentUserId = req.user.id;
+  let unfollowUserId = req.params.id;
+  User.forge({ id: currentUserId })
+    .following().detach([unfollowUserId])
+    .then(following => res.end())
+    .catch(err => res.sendStatus(500));
+});
+
+app.get('/', isAuthenticated, (req, res) => {
+  const followedIds = _.pluck(req.user.related('following').models, 'id');
+  let queryObj = {};
+  followedIds.forEach((id, idx) => queryObj[(idx === 0) ? 'where' : 'orWhere'] = {'author' : id});
+  Post.query(queryObj)
+    .orderBy('-created_at')
+    .fetchAll({withRelated: ['author']})
+    .then(results => res.send(results))
+    .catch(err => res.sendStatus(500));
+});
+
+app.get('/login', (req, res) => {
+  res.render('login', { message: req.flash('error') });
+});
+
+app.post('/login',
+  passport.authenticate('local', {
+    failureRedirect: '/login',
+    failureFlash: true
+  }),
+  function(req, res) {
+    res.redirect('/posts');
+  });
 
 // Exports for Server Hoisting.
 
