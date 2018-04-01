@@ -2,7 +2,7 @@
 
 const _      = require('lodash');
 const expect = require('unexpected');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt-nodejs');
 
 const User = require('../app/models/user');
 const Posts = require('../app/models/post');
