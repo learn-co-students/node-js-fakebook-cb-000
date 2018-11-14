@@ -70,7 +70,9 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(user, done) {
   User
     .forge({id: user})
-    .fetch()
+    .fetch({
+      withRelated: ['followers', 'following']
+    })
     .then((usr) => {
       done(null, usr);
     })

@@ -1,3 +1,4 @@
+
 const expect = require('unexpected');
 const packageJson = require('../package.json');
 

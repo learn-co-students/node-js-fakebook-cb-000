@@ -4,12 +4,13 @@ const bookshelf = require('../db/bookshelf');
 
 const Comment = require('./comment');
 const Post = require('./post');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt-nodejs');
 
 const User = bookshelf.Model.extend({
   tableName: 'users',
   initialize: function() {
     this.on('creating', this.encryptPassword);
+    this.on('destroying', this.destroyAllAttached);
   },
   hasTimestamps: true,
   posts: function() {
@@ -17,6 +18,12 @@ const User = bookshelf.Model.extend({
   },
   comments: function() {
     return this.hasMany(Comments);
+  },
+  followers: function() {
+    return this.belongsToMany(User, 'users_users', 'user_id', 'follower_id');
+  },
+  following: function() {
+    return this.belongsToMany(User, 'users_users', 'follower_id', 'user_id');
   },
   encryptPassword:(model, attrs, options) => {
     return new Promise((resolve, reject) => {
@@ -37,6 +44,16 @@ const User = bookshelf.Model.extend({
       });
     });
   },
+  destroyAllAttached: (model, options) => {
+    return Promise.all([
+      bookshelf.knex('users_users')
+        .where('user_id', model.get('id'))
+        .delete(),
+      bookshelf.knex('users_users')
+        .where('follower_id', model.get('id'))
+        .delete()
+    ]);
+  }
 });
 
 module.exports = bookshelf.model('User', User);
