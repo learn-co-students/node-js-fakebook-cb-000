@@ -87,7 +87,7 @@ const cleanup = () => {
       .then(coll => {
         return Promise.all([
           _.forEach(coll.models, v => {
-            v.destroy(); 
+            v.destroy();
           })
         ]);
     })
@@ -102,25 +102,25 @@ let loginData = {
 describe('Server', () => {
 
   after((done) => {
-    return cleanup().then(() => { 
-      done(); 
+    return cleanup().then(() => {
+      done();
     }).catch(done);
   });
 
   describe('/user endpoint', () => {
-  
+
     let server;
-  
+
     beforeEach(() => {
       server = request.agent(baseUrl);
     });
-  
+
     afterEach((done) => {
       cleanup().then(() => {
         done();
       }).catch(done);
     });
-  
+
     it('Can log a user in', (done) => {
       login(server, {createUser: true, loginData}).then((obj) => {
         expect(obj.loginResponse.status, 'to be', 302);
@@ -375,7 +375,7 @@ describe('Server', () => {
                 });
             });
         }).catch((err) => { throw err; });
-      }).catch(done); 
+      }).catch(done);
     });
 
     it('GET to /unfollow/:id with valid user id returns something', (done) => {
