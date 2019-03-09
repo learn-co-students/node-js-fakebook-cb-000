@@ -1,3 +1,5 @@
+"use strict";
+
 const _ = require('lodash');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -70,7 +72,9 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(user, done) {
   User
     .forge({id: user})
-    .fetch()
+    .fetch({
+      withRelated: ['followers', 'following']
+    })
     .then((usr) => {
       done(null, usr);
     })
@@ -168,6 +172,66 @@ app.post('/comment', isAuthenticated, (req, res) => {
     .save()
     .then((comment) => {
       res.send({id: comment.id});
+    })
+    .catch((error) => {
+      console.error(error);
+      res.sendStatus(500);
+    });
+});
+
+app.get('/follow/:id', isAuthenticated, (req, res) => {
+  if (_.isEmpty(req.params))
+    return res.sendStatus(400);
+  let currUserId = req.user.id;
+  let userToFollowId = req.params.id;
+  User
+    .forge({id: userToFollowId})
+    .fetch()
+    .then((usr) => {
+      if (!usr)
+        return res.sendStatus(400);
+      return User.forge({id: currUserId}).following().attach([usr]);
+    })
+    .then((usr) => {
+      res.send(_.pluck(usr.models, 'id'));
+    })
+    .catch((error) => {
+      console.error(error);
+      res.sendStatus(500);
+    });
+});
+
+app.get('/unfollow/:id', isAuthenticated, (req, res) => {
+  if (_.isEmpty(req.params))
+    return res.sendStatus(400);
+  let currUserId = req.user.id;
+  let userToUnfollowId = req.params.id;
+  User
+    .forge({id: currUserId})
+    .following()
+    .detach([userToUnfollowId])
+    .then((following) => {
+      res.end();
+    })
+    .catch((error) => {
+      console.error(error);
+      res.sendStatus(500);
+    });
+});
+
+app.get('/', isAuthenticated, (req, res) => {
+  const followedIds = _.pluck(req.user.related('following').models, 'id');
+  let queryObj = {};
+  followedIds.forEach((id, idx) => {
+    queryObj[(idx === 0) ? 'where' : 'orWhere'] = {'author' : id};
+  });
+  Post
+    .query(queryObj)
+    .orderBy('-created_at')
+    .fetchAll({withRelated: ['author']})
+    .then((results) => {
+      // if(results) console.log(_.map(results.models, v => { return JSON.stringify(v); }));
+      res.send(results);
     })
     .catch((error) => {
       console.error(error);
