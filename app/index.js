@@ -42,7 +42,7 @@ const Post = require('./models/post');
 const User = require('./models/user');
 
 /// ***** Passport Strategies & Helpers ***** //
-
+//I might do this for real later
 passport.use(new LocalStrategy((username, password, done) => {
   User
     .forge({ username: username })
