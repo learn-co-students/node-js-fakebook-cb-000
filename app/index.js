@@ -15,6 +15,7 @@ const ENV = process.env.NODE_ENV || 'development';
 const config = require('../knexfile');
 const db = knex(config[ENV]);
 
+
 // Initialize Express.
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
@@ -101,6 +102,27 @@ app.get('/user/:id', isAuthenticated, (req,res) => {
       console.error(error);
       return res.sendStatus(500);
     });
+});
+
+
+app.get('/follow/:id',isAuthenticated,function(req,res){
+  const idToFollow = req.params.id;
+  const userFollow = req.body.id;
+  debugger;
+  User.forge({id: idToFollow})
+      .fetch()
+      .then(function(user){
+        const updatedUser = User.forge({id:userFollow}).following().attach([user]);
+        debugger;
+        res.send(_.map(user,'id'));
+      })
+      .catch(function(error){
+        res.sendStatus(400);
+      })
+});
+
+app.get('/unfollow/:id',isAuthenticated,function(req,res){
+
 });
 
 app.post('/user', (req, res) => {
