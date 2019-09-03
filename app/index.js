@@ -107,14 +107,14 @@ app.get('/user/:id', isAuthenticated, (req,res) => {
 
 app.get('/follow/:id',isAuthenticated,function(req,res){
   const idToFollow = req.params.id;
-  const userFollow = req.body.id;
-  debugger;
-  User.forge({id: idToFollow})
+  const userFollow = req.user.id;
+  User.forge({id: userFollow})
       .fetch()
       .then(function(user){
-        const updatedUser = User.forge({id:userFollow}).following().attach([user]);
-        debugger;
-        res.send(_.map(user,'id'));
+        user.following().attach([idToFollow]);
+        User.forge({id:idToFollow}).fetch().then(function(user){
+          res.send([user.id]);
+        });
       })
       .catch(function(error){
         res.sendStatus(400);
@@ -122,7 +122,39 @@ app.get('/follow/:id',isAuthenticated,function(req,res){
 });
 
 app.get('/unfollow/:id',isAuthenticated,function(req,res){
+  const idToUnFollow = req.params.id;
+  const userFollow = req.user.id;
+  User.forge({id: userFollow})
+      .fetch()
+      .then(function(user){
+        user.following().detach([idToUnFollow])
+            .then(function(user){
+              res.end();
+            });
+      })
+      .catch(function(error){
+        res.sendStatus(400);
+      })
+});
 
+app.get('/',isAuthenticated,function(req,res){
+  const user = req.user.id;
+  User.forge({id: user})
+    .fetch({withRelated:['following']}).then(function(user){
+      const author_ids = user.related('following').models.map(x => x.id);
+      Post.where('author','IN',author_ids)
+          .orderBy('created_at','DESC')
+          .fetchAll()
+          .then(function(posts){
+            let postsJSON = [];
+            posts.models.forEach(function(post){
+              postsJSON.push(post.toJSON());
+            })
+            res.send(postsJSON);
+          })
+          .catch(function(error){
+          });
+    });
 });
 
 app.post('/user', (req, res) => {
