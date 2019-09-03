@@ -1,11 +1,13 @@
 // Update with your config settings.
 
 module.exports = {
-
   testing: {
     client: 'postgresql',
     connection: {
-      database: 'learnco_blog_test'
+      host : '127.0.0.1',
+      user : 'postgres',
+      password : 'postgres',
+      database: 'postgres'
     },
     pool: {
       min:2,
@@ -15,7 +17,6 @@ module.exports = {
       tableName: 'knex_migrations'
     }
   },
-
   development: {
     client: 'postgresql',
     connection: {
@@ -29,5 +30,4 @@ module.exports = {
       tableName: 'knex_migrations'
     }
   },
-
 };

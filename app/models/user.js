@@ -10,6 +10,7 @@ const User = bookshelf.Model.extend({
   tableName: 'users',
   initialize: function() {
     this.on('creating', this.encryptPassword);
+    this.on('destroying', this.deleteAttached);
   },
   hasTimestamps: true,
   posts: function() {
@@ -23,6 +24,18 @@ const User = bookshelf.Model.extend({
   },
   following: function() {
     return this.belongsToMany(User, 'users_users', 'follower_id', 'user_id');
+  },
+  deleteAttached: function(model, options) {
+    return Promise.all([
+      bookshelf
+        .knex('users_users')
+        .where('user_id', model.get('id'))
+        .delete(),
+      bookshelf
+        .knex('users_users')
+        .where('follower_id', model.get('id'))
+        .delete()
+    ]);
   },
   encryptPassword:(model, attrs, options) => {
     return new Promise((resolve, reject) => {
