@@ -188,7 +188,25 @@ app.post('/login',
     res.redirect('/posts');
   });
 
+  app.get('/follow/:id',isAuthenticated,function(req,res){
+    const idToFollow = req.params.id;
+    const userFollow = req.user.id;
+    debugger;
+    User.forge({id: idToFollow})
+        .fetch()
+        .then(function(user){
+          const updatedUser = User.forge({id:userFollow}).following().attach([user]);
+          debugger;
+          res.send([user.id]);
+        })
+        .catch(function(error){
+          res.sendStatus(400);
+        })
+  });
 
+  app.get('/unfollow/:id',isAuthenticated,function(req,res){
+
+  });
 // Exports for Server Hoisting.
 
 const listen = (port) => {
