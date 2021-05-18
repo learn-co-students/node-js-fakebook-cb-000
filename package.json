@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "debug-mocha": "export NODE_ENV=testing; iron-node node_modules/mocha/bin/_mocha",
     "test": "export NODE_ENV=testing; mocha -R mocha-multi --reporter-options spec=-,json=.results.json",
     "start": "export NODE_ENV=development; node run-server.js"
   },
@@ -35,5 +36,8 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "pg": "^4.5.5"
+  },
+  "resolutions": {
+    "ansi-styles": "^3.2.0"
   }
 }
